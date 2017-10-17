@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Parent</title>
+<link rel="icon" href="usc.jpg" type="image/jpg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.typeit/4.4.0/typeit.min.js"></script>
+<script src="//cdn.jsdelivr.net/webshim/1.14.5/polyfiller.js"></script>
+<script src="http://cdn.jsdelivr.net/webshim/1.12.4/extras/modernizr-custom.js"></script>
+    
+<style>
+
+html{
+	
+	height:100%;
+	width:100%;
+	overflow: hidden;
+}
+
+body{
+
+		height:100%;
+	width:100%;
+	font-family: 'Open Sans', sans-serif;
+}
+/*Creating the Menubar*/
+ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    background-color: none;
+    width: 100%;
+}
+
+li {
+    float: right;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background-color: #f4511e;
+    border-color: #f4511e;
+    text-decoration: none;
+}
+
+#associationName{
+float:left;
+font-size: 25px;
+color: white;
+padding: 9px 16px 9px;
+}
+
+/* Center the loader */
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 16px solid white;
+  border-radius: 50%;
+  border-top: 16px solid #f6734a;
+  border-bottom: 16px solid #f6734a;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+  position: relative;
+  -webkit-animation-name: animatebottom;
+  -webkit-animation-duration: 1s;
+  animation-name: animatebottom;
+  animation-duration: 1s
+}
+
+@-webkit-keyframes animatebottom {
+  from { bottom:-100px; opacity:0 } 
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes animatebottom { 
+  from{ bottom:-100px; opacity:0 } 
+  to{ bottom:0; opacity:1 }
+}
+
+#mainDiv {
+  display: none;
+  text-align: center;
+}
+
+
+.background-image{
+z-index: 1;
+  position: fixed;
+	background-size: 100% 100%;
+  background-image: url('water.jpg');
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+}
+
+.content {
+  left: 0;
+  right: 0;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+#uploadPdf{
+    margin-top: 3%;
+	margin-left:10%;
+/*	z-index:3;*/
+    position: absolute;
+    /*background-color: #f6734a;*/
+    color: #f8a58b;;
+    font-weight: bold;
+    font-size: 160%;
+}
+
+
+.btn,.btnprimary {
+  background-color: #f6734a;
+      border-color: #f6734a;
+
+}
+
+
+#meetNamesTable{
+
+    margin-top:9%; 
+    width: 80%; 
+    margin-left: 10%;
+    right: 10%;
+}
+
+.table>tbody>tr>td{
+  padding: 7px;
+}
+
+#greeting{
+  z-index:2;
+  position:absolute;
+  margin-top: 1%;
+  margin-left:10%;
+  color: white;
+  font-size: 35px;
+}
+
+table,td{
+  border: 1px solid white;
+  border-right: none;
+  border-left:none;
+}
+
+#eventName{
+font-size: 20px; 
+color:white; 
+float:left;
+
+}
+
+.tabs li a:hover{
+	text-decoration: none;
+	color:#f6734a;
+}
+
+.tab_selected{
+	color:#f6734a;
+}
+
+
+#coach { 
+	position:absolute;
+  	width: 25%;
+	background-color:rgba(136, 183, 178, 0.6); 
+	width:100%;
+	
+	height:84vh;
+	margin-top:6%;
+	z-index:2;
+}
+a:hover{
+	background-color:#f4511e;
+}
+
+/*For mobile screens*/
+@media screen and (max-width: 500px) {
+
+	#content{
+
+		overflow: scroll;
+
+		}   
+
+}
+
+table_div{
+	position:absolute;
+	margin-top:1%;
+	width:320px; 
+	height:60px; 
+	overflow:auto;
+}
+    
+    /* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    height: 34%;
+}
+
+/* The Close Button */
+.close {
+    color: black;
+    background-color: #f6734a; 
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/*.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}    */
+    
+    #browse-content, #browse{
+        display: inline-block;
+    }
+    
+    #set-deadline, #date-field{
+        display: inline-block;
+    } 
+    
+    
+    input[type=text] {
+    width: 50%;
+    padding: 6px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+    #date-field{
+          width: 30%;
+    padding: 6px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    }
+
+
+
+
+</style>
+</head>
+
+<body onload="timeoutFunction()" style="margin:0;">
+	<div id="loader"></div>
+		  <div class="background-image"></div>
+
+			  <div class="content" style="position:absolute;">
+
+        
+			  <div>
+       
+        <a href="#" class="log_btn" style="position:absolute;z-index:2;border: 1px solid #f6734a;padding:10px;padding-left:22px;color:white;text-decoration:none;right:0;margin-right:4%;background-color: #f6734a;
+          margin-top:2%;border-radius:5px;width:8%;">Logout</a>
+				  
+			  </div>
+			
+      <div id="greeting">Arcadia Reptides</div>
+	  <!-- <script>
+		$('#example1').typeIt({
+     strings: 'Welcome HEAD COACH',
+     speed: 100,
+     autoStart: false
+});
+	  </script> -->
+      
+	  <div id="coach" >
+    <p id="uploadPdf">Deadline is 10/23/2017</p>
+    <p id="uploadPdf" style="margin-top: 5%">You can sign Up in atmost 3 events.</p>
+
+
+          
+                  <!-- The Modal -->
+<div id="myModal" class="modal">
+  <div class="modal-content">
+    
+      <label id="set-deadline">You have successfully signed up for the event.</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      
+      <br><br>
+      <!-- <button type="submit" class="btn btn-primary close" style="float: right; color: black;
+    background-color: #f6734a;">Close to Continue&nbsp;</button> -->
+
+    <button class="close" style="color: white;opacity: 4.2;background-color: #f6734a; font-weight: bold;font-size: 15px;width: 20%;border-radius: 4px;height: 25%; ">Close</button>
+  
+  </div>
+</div> 
+
+
+<div id="myModal1" class="modal">
+  <div class="modal-content">
+    
+      <label id="set-deadline">Make Checks payable to Southern California Swimming.<br>Email for team electronic entries only: ocpswim@hotmail.com<br>MAIL AND WALKIN ENTRIES TO: Carol Peña 413 E 212 Th St Carson Ca 90745</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      
+      <br><br>
+
+      <!-- <button type="submit" class="btn btn-primary close" style="float: right; color: black;
+    background-color: #f6734a;">Close to Continue&nbsp;</button> 
+ -->
+
+    <button class="close1" style="color: white;opacity: 4.2;background-color: #f6734a; font-weight: bold;font-size: 15px;width: 20%;border-radius: 4px;height: 25%; float: right;">Close</button>
+  
+  </div>
+</div> 
+          
+       <table class="table" id="meetNamesTable" style="overflow:auto;">
+		 
+		 
+      <tbody>
+       
+		
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">200 Freestyle</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary" id="signup">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+            
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">100 Freestyle</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary" id="signup">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+            
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">100 Backstroke</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary" id="signup">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+           
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">200 Free Relay</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+           
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">50 Backstroke</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+          
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">200 Med Relay</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+            
+            </span>
+          </td>     
+        </tr>
+
+        <tr>
+          <td style="margin:0 auto; width:100%;">
+            <span id="eventName">25 Fly</span>
+            <span style="width: 50%;float:right;margin-right:-40%;">
+            <button type="button" class="btn btn-primary">Sign Up&nbsp;<i class="fa fa-plus" style="color:white;"></i></button>
+            &nbsp;&nbsp;
+            
+            </span>
+          </td>     
+        </tr>
+
+
+		
+		
+
+
+      </tbody>
+      </table>
+
+      <button type="button" class="btn btn-primary" id="checkout" style="float: right; margin-right: 5%; margin-bottom: 5%;">Checkout&nbsp;</button>
+	  
+		
+	  </div>
+
+     
+
+		</div>
+
+
+	<script>
+
+                // Get the modal
+var modal = document.getElementById('myModal');
+
+// Get the button that opens the modal
+var btn = document.getElementById("signup");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+ 
+
+
+
+var modal1 = document.getElementById('myModal1');
+
+// Get the button that opens the modal
+var btn1 = document.getElementById("checkout");
+
+// Get the <span> element that closes the modal
+var span1 = document.getElementsByClassName("close1")[0];
+
+// When the user clicks the button, open the modal 
+btn1.onclick = function() {
+    modal1.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span1.onclick = function() {
+    modal1.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal1) {
+        modal1.style.display = "none";
+    }
+}
+ 
+
+
+webshims.setOptions('forms-ext', {types: 'date'});
+webshims.polyfill('forms forms-ext');
+
+        var myVar;
+	function timeoutFunction() {
+	    myVar = setTimeout(showPage, 500);
+	}
+	function showPage() {
+	  document.getElementById("loader").style.display = "none";
+	  document.getElementById("mainDiv").style.display = "block";
+	}
+                    
+    $('#browse').click(function() {
+    $('#pdf').trigger('click');
+});
+
+$('#pdf').change(function() {
+    var vals = $(this).val(),
+        val = vals.length ? vals.split('\\').pop() : '';
+    $('input[type=text]').val(val);
+});  
+	</script>
+</body>
+</html>
