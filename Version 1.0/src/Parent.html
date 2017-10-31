@@ -38,7 +38,23 @@ ul {
     background-color: none;
     width: 100%;
 }
-
+#menu {
+				text-align: center;
+			}
+			.tabs_div{
+				position: absolute;
+				z-index: 2;
+				margin-top: 15%;
+			}
+			.nav {
+				display: inline-block;
+				position: absolute;
+				z-index: 2;
+				list-style: none;
+				border: 1px solid #b8b8b8;
+				font-size: 14px;
+				margin: 0; padding: 0;
+			}
 li {
     float: right;
 }
@@ -522,6 +538,15 @@ window.onclick = function(event) {
     }
 }
  
+<nav id="menu">
+		  	<ul class="nav">
+				<li><a href="javascript:void(0);" class="active">Event 1</a></li>
+		    	<li><a href="javascript:void(0);">Event 2</a></li>
+		    	<li><a href="javascript:void(0);">Event 3</a></li>
+		    	<li><a href="javascript:void(0);">Event 4</a></li>
+		    	<li><a href="javascript:void(0);">Event 5</a></li>
+		  	</ul>
+		</nav>
 
 
 webshims.setOptions('forms-ext', {types: 'date'});
