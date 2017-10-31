@@ -1,36 +1,58 @@
 <!DOCTYPE html>
 <?php 
 include 'connectDB.php'; 
+session_start();
+$_SESSION['error'] = 'hello';
+
 if(isset($_POST['submit'])){
 	$loginId = $_POST['loginId'];
 	//echo $loginId;
 	
 	$loginPswd = $_POST['loginPswd'];
 	$userRole = $_POST['user'];
-	//echo $userRole;
-	//echo $loginPswd;
-	$conn = connectToDB();
+
+	// if($loginPswd == "")
+	// 	 $_SESSION['errMsg'] = "";
+	// else
+	// {
+
+		$conn = connectToDB();
 	$query = "select count(*) from user where login_id = '".$loginId."' and login_pswd = '".$loginPswd."' and user_role = '".$userRole."'";
 	
 	$row = fetchFromDB($conn, $query);
-	//echo "jkhjh".$row[0];
+	//echo $row;
 	if($row[0]==1 && $userRole == "Coach")
 	{	//echo "yes";
+		
 	  header("location:HeadCoach.php");
 	}
 	if($row[0]==1 && $userRole == "Parent")
 	{
 		header("location:Parent.php");
+		
 	}
+	if($row[0] != 1)
+	{
+		 $_SESSION['errMsg'] = "Invalid username or password. <br>Please try again.";
+	}
+
+	// }
+
+	
+	
+	
+	
 }
 //
 ?>
+
 <html lang="en">
 <head>
 <title> Swim Meet Signup </title>
 <link rel="icon" href="usc.jpg" type="image/jpg">
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 <meta charset="utf-8">
+<meta http-equiv="Cache-control" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
@@ -231,6 +253,9 @@ padding: 9px 16px 9px;
 	color:#f6734a;
 }
 
+
+
+
 @media screen and (max-width: 500px) {
 
 	#content{
@@ -285,20 +310,30 @@ padding: 9px 16px 9px;
 				<div style="background-color:#f6734a;width:100%;height:8vh;">
 					
 				</div>
-				<form method="post" action="<?php echo $_SERVER['PHP_SELF'];?>">
-				 <ul style="margin-top:20%;">
+				<form method="post" action="<?php echo $_SERVER['PHP_SELF'];?>" autocomplete="off">
+				
+				<div id="errMsg" style="color: red; margin-top: 4%">
+            	<?php if(!empty($_SESSION['errMsg'])) { echo $_SESSION['errMsg']; } ?>
+        		</div>
+       			<?php unset($_SESSION['errMsg']); ?>
+
+
+				 <ul style="margin-top:6%;">
 					  <input type="radio" name="user" value="Parent" checked style="color:#f4511e; background-color:#f4511e; margin-right:1%;">
 						<label style="margin-right:2%;">PARENT</label>
+
 
 						<input type="radio" name="user" value="Coach" style="margin-right:1%;margin-left:3%;"> 
 						<label style="margin-right:2%;">COACH</label>
 					  
 				</ul>
-				
-			    <input type="text" class="form-control" id="coachusr" name="loginId" placeholder="Login Id" style="width:65%;height:7vh;margin-top:10%;margin-left:15%;border-radius:15px;">
-		      	<input type="password" class="form-control" id="coachpwd" name="loginPswd" placeholder="Password"style= "width:65%;height:7vh;margin-top:5%;margin-left:15%;border-radius:15px;">
+
+			    <input type="text" class="form-control" id="coachusr" name="loginId" placeholder="Login Id" style="width:65%;height:7vh;margin-top:6%;margin-left:15%;border-radius:15px;" required="" oninvalid="this.setCustomValidity('Please enter Login Id')" oninput="setCustomValidity('')">
+		      	<input type="password" class="form-control" id="coachpwd" name="loginPswd" placeholder="Password"style= "width:65%;height:7vh;margin-top:5%;margin-left:15%;border-radius:15px;" required="" oninvalid="this.setCustomValidity('Please enter Password')" oninput="setCustomValidity('')">
 		      	<br>
-		      	<button type="submit" name="submit" class="btn btn-primary" id="coachlogin" style="width:35%;height:7.5vh;margin-top:8%;opacity:1.5;">Login</button>
+		      	<input type="checkbox" name="credentials" value="credentials">&nbsp;&nbsp;&nbsp;Remember Me<br>
+		      	<br>
+		      	<button type="submit" name="submit" class="btn btn-primary" id="coachlogin" style="width:35%;height:7.5vh;opacity:1.5;">Login</button>
 				</form>
 				
 				
@@ -314,14 +349,21 @@ padding: 9px 16px 9px;
 			
 
 	<script>
+
 	var myVar;
 	function timeoutFunction() {
 	    myVar = setTimeout(showPage, 500);
+
 	}
 	function showPage() {
 	  document.getElementById("loader").style.display = "none";
 	  document.getElementById("mainDiv").style.display = "block";
+	   document.getElementById("coachusr").value = "";
+	    document.getElementById("coachpwd").value = "";
 	}
+
+
+</script>  
 	</script>
 </body>
 </html>

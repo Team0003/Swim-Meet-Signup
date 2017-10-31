@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <?php include 'extract.php';
-//include 'connectDB.php';
-if(isset($_POST['submit'])){
-	$pdfname = $_FILES["pdfname"]["name"];
-	$deadline = $_POST["deadline"];
-	extractPdf($pdfname, $deadline);
+if(isset($_POST['extractpdfbutton'])){
+
+  $pdfname = $_FILES["pdfname"]["name"];
+  $deadline = $_POST["deadline"];
+  extractPdf($pdfname, $deadline);
+
+	
 }
 
 ?>
@@ -71,8 +73,8 @@ li a {
 }
 
 .btn-primary:hover {
-    background-color: #f4511e;
-    border-color: #f4511e;
+    background-color: #f6734a;
+    border-color: #f6734a;
     text-decoration: none;
 }
 
@@ -148,6 +150,9 @@ z-index: 1;
   height: 100%;
 }
 
+button : active{
+  background-color: #f6734a;
+}
 .content {
   left: 0;
   right: 0;
@@ -164,8 +169,8 @@ z-index: 1;
     border-color: #f6734a;
 }
 #uploadPdf:hover{
-	background-color: #f4511e;
-    border-color: #f4511e;
+	background-color: #f6734a;
+    border-color: #f6734a;
 	
 } 
 
@@ -231,7 +236,7 @@ float:left;
 	z-index:2;
 }
 a:hover{
-	background-color:#f4511e;
+	background-color:#f6734a;
 }
 
 /*For mobile screens*/
@@ -262,7 +267,7 @@ table_div{
     left: 0;
     top: 0;
     width: 100%; /* Full width */
-    height: 100%; /* Full height */
+    height: 120%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
     background-color: rgb(0,0,0); /* Fallback color */
     background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
@@ -275,7 +280,7 @@ table_div{
     padding: 20px;
     border: 1px solid #888;
     width: 50%;
-    height: 34%;
+    height: 40%;
 }
 
 /* The Close Button */
@@ -335,7 +340,7 @@ table_div{
 				  margin-top:2%;border-radius:5px;width:6%;">Logout</a>
 			  </div>
 			
-      <div id="greeting"><p id="example1"><p></div>
+				  <div id="greeting"><p id="example1">Welcome HEAD COACH</p></div>
 	  <script>
 		$('#example1').typeIt({
      strings: 'Welcome HEAD COACH',
@@ -351,21 +356,30 @@ table_div{
 <div id="myModal" class="modal">
 
   <!-- Modal content -->
-  <div class="modal-content">
+  <div class="modal-content"> 
     <span class="close">&times;</span>
       
       
       <button type="button" class="btn btn-primary" id="browse">Browse File&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
-    <input type="text" id="browse-content" placeholder="Browse the file from the dekstop" />
+    <input type="text" id="browse-content" placeholder="Browse the file from the dekstop" name="browsefile">
+    <span style="color: red;" name="fileErr" id="fileErr"></span>
       
-      <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>" enctype="multipart/form-data">
+      <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>" enctype="multipart/form-data" id="modalform" name="modalform">
       
       <input type="file" id="pdf" name="pdfname" style="display:none"/> 
       <br>
       <label id="set-deadline">Set Deadline: </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <input id="date-field" type="date" name="deadline">
+      <span style="color: red;" name="dateErr" id="dateErr"></span>
+       <input type="submit" id="extractpdfbutton" name="extractpdfbutton" style="display:none"/> 
+
+
+
+    
+
+      
       <br><br>
-      <button type="submit" class="btn btn-primary" name="submit" id="upload-file">Upload File&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-primary" id="upload-file">Upload File&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
       
       </form>
       
@@ -426,21 +440,12 @@ table_div{
 		  }
 		  ?>
 
-		
-		
-
-
       </tbody>
       </table>
-	  
-		
+	
 	  </div>
 
-     
-
 		</div>
-
-
 	<script>
 
                 // Get the modal
@@ -489,6 +494,45 @@ if (datefield.type!="date"){ //if browser doesn't support input type="date", ini
     $('#browse').click(function() {
     $('#pdf').trigger('click');
 });
+
+
+$("#upload-file").click(function(e){
+
+   var browsefield = $.trim($('#browse-content').val());
+  var deadlinefield = $.trim($('#date-field').val());
+
+  if(browsefield.length == 0 && deadlinefield.length == 0)
+  {
+     $("#fileErr").html("   Please select a file");
+     $("#dateErr").html("   Please select a deadline");
+
+  }
+  else if(browsefield.length == 0)
+     $("#fileErr").html("   Please select a file");
+  else if(deadlinefield.length == 0)
+    $("#dateErr").html("   Please select a deadline");
+  else
+  
+   $('#extractpdfbutton').trigger('click');
+
+    });
+
+ 
+
+$( "#browse").click(function() {
+
+  $("#fileErr").html("");
+
+});
+
+$( "#date-field" ).focus(function() {
+
+  $("#dateErr").html("");
+
+});
+
+
+
 
 $('#pdf').change(function() {
     var vals = $(this).val(),
