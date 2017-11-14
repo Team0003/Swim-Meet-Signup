@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <?php include 'extract.php';
 if(isset($_POST['extractpdfbutton'])){
-
   $pdfname = $_FILES["pdfname"]["name"];
   $deadline = $_POST["deadline"];
-  extractPdf($pdfname, $deadline);
-
-	
+  extractPdf($pdfname, $deadline);	
 }
 
 ?>
+
+
+<?php 
+if(isset($_POST['delete'])){
+  $meet_id = $_POST['meet_id'];
+   $conn = connectToDB();
+      $sql = "update meet set meet_status='INACTIVE' where meet_id=".$meet_id;
+      $update = UpdateDB($conn, $sql);
+}
+
+?>
+
+
 <html lang="en">
 <head>
 <title>Head Coach</title>
@@ -41,7 +51,7 @@ html{
 	
 	height:100%;
 	width:100%;
-	overflow: hidden;
+  
 }
 
 body{
@@ -49,27 +59,6 @@ body{
 		height:100%;
 	width:100%;
 	font-family: 'Open Sans', sans-serif;
-}
-/*Creating the Menubar*/
-ul {
-    list-style-type: none;
-    margin: 0px;
-    padding: 0px;
-    overflow: hidden;
-    background-color: none;
-    width: 100%;
-}
-
-li {
-    float: right;
-}
-
-li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
 }
 
 .btn-primary:hover {
@@ -104,6 +93,10 @@ padding: 9px 16px 9px;
   animation: spin 2s linear infinite;
 }
 
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
 
 @-webkit-keyframes spin {
   0% { -webkit-transform: rotate(0deg); }
@@ -144,10 +137,15 @@ padding: 9px 16px 9px;
 z-index: 1;
   position: fixed;
 	background-size: 100% 100%;
-  background-image: url('7.jpg');
+  background-image: url('Asun.jpg');
   background-repeat: no-repeat;
   width: 100%;
   height: 100%;
+  -webkit-filter: blur(2px);
+-moz-filter: blur(2px);
+-o-filter: blur(2px);
+-ms-filter: blur(2px);
+filter: blur(2px);
 }
 
 button : active{
@@ -161,8 +159,8 @@ button : active{
 }
 
 #uploadPdf{
-    margin-top: 11%;
-	margin-left:1%;
+    margin-top: 1%;
+	margin-left:10%;
 	z-index:3;
     position: absolute;
     background-color: #f6734a;
@@ -183,15 +181,15 @@ button : active{
 
 #meetNamesTable{
 
-    margin-top:11%; 
-    width: 80%; 
+    margin-top:8%; 
+    width: 85%; 
     margin-left: 10%;
-    right: 10%;
+    /*right: 10%;*/
 }
 
-.table>tbody>tr>td{
-  padding: 20px;
-}
+
+ /*TO BE CHANGED LATER ON*/
+
 
 #greeting{
   z-index:2;
@@ -202,6 +200,9 @@ button : active{
   font-size: 45px;
 }
 
+
+
+
 table,td{
   border: 1px solid white;
   border-right: none;
@@ -209,7 +210,8 @@ table,td{
 }
 
 #eventName{
-font-size: 25px; 
+font-size: 125%;
+font-weight: bold; 
 color:white; 
 float:left;
 
@@ -228,21 +230,23 @@ float:left;
 #coach { 
 	position:absolute;
   	width: 25%;
-	background-color:rgb(255,238,229, 0.6); 
+	/*background-color:rgb(255,238,229, 0.6); */
 	width:100%;
-	margin-top:;
 	height:75vh;
 	margin-top:10%;
 	z-index:2;
+  overflow-y: scroll;
+  
+    /*overflow: -moz-scrollbars-none;*/
 }
-a:hover{
-	background-color:#f6734a;
+.table>tbody>tr>td{
+  padding: 1%;
 }
-
 
 #myProgress {
   width: 100%;
   background-color: #ddd;
+  border-radius: 4px;
   display: none;
 }
 
@@ -252,37 +256,9 @@ a:hover{
   background-color: #4CAF50;
   text-align: center;
   line-height: 30px;
+  border-radius: 4px;
   color: white;
 }
-
-
-ul.breadcrumb1 {
-    padding: 10px 16px;
-    list-style: none;
-    background-color: white;
-    
-}
-ul.breadcrumb1 li {
-    display: inline;
-    font-size: 18px;
-}
-ul.breadcrumb1 li+li:before {
-    padding: 8px;
-     content: "\00a0";
-    color: black;
-    
-}
-ul.breadcrumb1 li a {
-    color: #000000;
-    text-decoration: none;
-    font-weight: bold;
-    
-}
-ul.breadcrumb1 li a:hover {
-    color:#f6734a;
-    
-}
-
 
 
 
@@ -371,10 +347,37 @@ table_div{
     box-sizing: border-box;
     }
 
-
-
-
 </style>
+
+<style>
+ul.breadcrumb {
+   
+    list-style: none;
+    background-color: transparent;
+    margin-left: 9%;
+    margin-top: 1%;
+    color: white;
+    
+}
+ul.breadcrumb li {
+    display: inline;
+    font-size: 135%;
+}
+ul.breadcrumb li+li:before {
+   
+    color: white;
+    content: ">\00a0";
+}
+ul.breadcrumb li a {
+    color: white;
+    text-decoration: none;
+}
+ul.breadcrumb li a:hover {
+    color: #f6734a;
+    text-decoration: none;
+}
+</style>
+
 </head>
 
 <body onload="timeoutFunction()" style="margin:0;">
@@ -387,30 +390,28 @@ table_div{
 				  margin-top:2%;border-radius:5px;width:6%;">Logout</a>
 			  </div>
 			
-				  <div id="greeting"><p id="example1">Welcome HEAD COACH</p></div>
-	  <!-- <script>
-		$('#example1').typeIt({
-     strings: 'Welcome HEAD COACH',
-     speed: 100,
-     autoStart: falsefile
-});
-	  </script> -->
-
-
-<!-- <ul class="breadcrumb1" style=" margin-top: 11%;">
-  <li onclick="switchColors(this);"><a href="#">Home</a></li>
-  <li><a href="#">></a></li>
-  <li onclick="switchColors(this);"><a href="#">Welcome</a></li>
-  <li><a href="#">></a></li>
-  <li onclick="switchColors(this);"><a href="#">Events</a></li>
-  <li><a href="#">></a></li>
-  <li onclick="switchColors(this);"><a href="#">Checkout</a></li>
-</ul> -->
-      <button type="button" class="btn btn-primary" id="uploadPdf">Upload PDF&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
-	  <div id="coach" >
+				  <div id="greeting"><p id="example1"><p></div>
 	  
+
+
+
+     
+
+	  <div id="coach" >
+
+	  <ul class="breadcrumb">
+  <li><a href="SwimMeetSignup.php">Home</a></li>
+  <li><a href="#">Meets</a></li>
+  <li><a href="#">Events</a></li>
+  
+</ul>
+ <button type="button" class="btn btn-primary" id="uploadPdf">Upload PDF&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
+
+
+
+
           
-                  <!-- The Modal -->
+<!-- The Modal -->
 <div id="myModal" class="modal">
 
   <!-- Modal content -->
@@ -434,10 +435,10 @@ table_div{
       <br><br>
       <button type="button" class="btn btn-primary" id="upload-file">Upload File&nbsp;<i class="fa fa-upload" aria-hidden="true"></i></button>
 
-<br><br>
-    <div id="myProgress">
-      <div id="myBar"></div>
-    </div>
+      <br><br>
+      <div id="myProgress">
+        <div id="myBar"></div>
+      </div>
       
       </form>
       
@@ -445,15 +446,16 @@ table_div{
 
 </div> 
           
+<!-- MEET TABLE STARTS HERE -->
+
        <table class="table" id="meetNamesTable" style="overflow:auto;">
-		 
-		 
+		 	 
       <tbody>
           <?php
 		  $conn = connectToDB();
 		  $sql = "select count(*) from meet";
 		  $rows = fetchFromDB($conn, $sql);
-		  $sql = "select meet_name, meet_id, signup_deadline from meet";
+		  $sql = "select meet_name, meet_id, signup_deadline from meet where meet_status='ACTIVE' order by meet_id desc";
 		  
 		  if($rows[0] == 0){
 			  ?>
@@ -464,30 +466,46 @@ table_div{
 		  }
 		  else{
 		  $result = mysqli_query($conn,$sql); 
-		  //echo "hjjhjh". $rows[0];
+		 
 		  while ($row=mysqli_fetch_row	($result))
           {
             //<?php echo $row[1];
 			  ?>
-		  <form method="post" action="HCViewEvents1.php">
+		  <form method="post">
 				<input type="hidden" name="meet_name" value="<?php echo $row[0]?>" />
 			    <input type="hidden" name="meet_id" value="<?php echo $row[1]?>" />
 			     <input type="hidden" name="signup_deadline" value="<?php echo $row[2]?>" />
 			  <tr>
-          <td style="margin:0 auto; width:100%;">
+          <td style="margin:0 auto; width:100%; height: 5%;">
             <span id="eventName">
 			  <?php
 			  echo $row[0];
 				  ?>
 			  </span>
-            <span style="width: 50%;float:right;margin-right:-15%;">
+
+            <span style="width: 50%;float:right;">
+            <span style="color: white;">
+        <?php
+        echo $row[2];
+          ?>
+        </span>
 			
-            <button type="submit" name="viewEvents" class="btn btn-primary">View Events&nbsp;<i class="fa fa-calendar" style="color:white;"></i></button>
+            <button type="submit" name="viewEvents" class="btn btn-primary" formaction="HCViewEvents1.php">View Events&nbsp;<i class="fa fa-calendar" style="color:white;"></i></button>
 			
             &nbsp;&nbsp;
-            <button type="button" class="btn btn-primary">View Report&nbsp;<i class="fa fa-file-text" style="color:white;"></i></button>
+            <button stype="button" class="btn btn-primary">View Report&nbsp;<i class="fa fa-file-text" style="color:white;"></i></button>
             &nbsp;&nbsp;
-            <button type="button" class="btn btn-primary">Download PDF&nbsp;<i class="fa fa-download" style="color:white;"></i></button>
+
+            
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('link').click()">Download PDF&nbsp;<i class="fa fa-download" style="color:white;"></i></button>
+            <a id="link" href="./PDFs/Swim-Meet-comm-corr-sept-2016.pdf" download hidden></a>
+
+              &nbsp;&nbsp;
+            <button type="button" class="btn btn-primary" onclick='confirmDelete()'><i class="fa fa-trash-o" aria-hidden="true" style="color:white;"></i></button>
+           <button type="submit" formaction="<?php echo $_SERVER['PHP_SELF']; ?>" name="delete" id="delete" hidden></button>
+             
+           <!--  <span id="delete"></span> -->
+            
             </span>
           </td>     
         </tr>
@@ -500,10 +518,15 @@ table_div{
 
       </tbody>
       </table>
+
+      
+
 	
 	  </div>
 
 		</div>
+
+   
 	<script>
 
                 // Get the modal
@@ -533,8 +556,12 @@ window.onclick = function(event) {
 }
  
 if (datefield.type!="date"){ //if browser doesn't support input type="date", initialize date picker widget:
+  var dateToday = new Date(); 
     jQuery(function($){ //on document.ready
-        $('#date-field').datepicker();
+        $('#date-field').datepicker(
+          {
+            minDate: dateToday
+          });
     })
 }
         
@@ -550,22 +577,15 @@ if (datefield.type!="date"){ //if browser doesn't support input type="date", ini
         
             
     $('#browse').click(function() {
-      // $(this).css("background-color", "#f6734a");
-      // $(this).css("border-color", "#f6734a");
-
+     
     $('#pdf').trigger('click');
 });
 
 
 $("#upload-file").click(function(e){
 
-   var browsefield = $.trim($('#browse-content').val());
+  var browsefield = $.trim($('#browse-content').val());
   var deadlinefield = $.trim($('#date-field').val());
-  // $(this).css("background-color", "#f6734a");
-  // $(this).css("border-color", "#f6734a");
-
-  
-  
 
   if(browsefield.length == 0 && deadlinefield.length == 0)
   {
@@ -580,12 +600,11 @@ $("#upload-file").click(function(e){
   else
   {
 
-    // var istrue = 0;
     function frame() {
       if (width >= 100) {
-        // istrue = 1;
-        // console.log("yes");
+       
         clearInterval(id);
+        
         $('#extractpdfbutton').trigger('click');
         
       } else {
@@ -602,13 +621,6 @@ $("#upload-file").click(function(e){
       var width = 0;
     var id = setInterval(frame, 10);
     frame();
-    // console.log(istrue);
-    // if(istrue == 1)
-    // {
-    //    $('#extractpdfbutton').trigger('click');
-    // }
-
-    
      
     }
     else
@@ -618,20 +630,16 @@ $("#upload-file").click(function(e){
 
   }
   
-   
-
     });
 
  
 
 $( "#browse").click(function() {
-
   $("#fileErr").html("");
 
 });
 
 $( "#date-field" ).focus(function() {
-
   $("#dateErr").html("");
 
 });
@@ -643,7 +651,37 @@ $('#pdf').change(function() {
     var vals = $(this).val(),
         val = vals.length ? vals.split('\\').pop() : '';
     $('input[type=text]').val(val);
-});  
+}); 
+
+
+
 	</script>
+
+  <script>
+      $('#example1').typeIt({
+          strings: 'WELCOME HEADCOACH!',
+          speed: 150,
+          autoStart: true,
+          loop: false,
+          deleteDelay: 2,
+          cursor: false
+      });
+      </script>
+
+      <script>
+        
+function confirmDelete() {
+    var txt;
+    var r = confirm("Are you sure you want to delete this meet?");
+    if (r == true) {
+        document.getElementById("delete").click();
+    }
+   
+}
+
+      </script>
+
+
+
 </body>
 </html>
