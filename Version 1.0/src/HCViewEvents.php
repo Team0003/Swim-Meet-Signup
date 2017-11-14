@@ -8,9 +8,10 @@
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>    
+   
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.js"></script>    
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/jquery.typeit/4.4.0/typeit.min.js"></script>
 
 <script>
@@ -23,8 +24,13 @@
         document.write('<script src="https://cdn.jsdelivr.net/jquery.typeit/4.4.0/typeit.min.js"><\/script>\n')
     }
 </script>
-<script src="dirPagination.js"></script>
+
+<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.10.0.js"></script>
+     <script src="dirPagination.js"></script>
+
+    
   </head>  
+    
 <style>
 
 html{
@@ -72,7 +78,7 @@ padding: 9px 16px 9px;
   animation: spin 2s linear infinite;
 }
 
-
+    
 @-webkit-keyframes spin {
   0% { -webkit-transform: rotate(0deg); }
   100% { -webkit-transform: rotate(360deg); }
@@ -243,91 +249,6 @@ a:hover{
 	
 } 
     
-    
-        /* The Modal (background) */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    padding-top: 100px; /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-
-/* Modal Content */
-.modal-content {
-    background-color: #fefefe;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%;
-    height: 50%;
-}
-
-/* The Close Button */
-.close {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}  
-
-    
-    .ng-modal-overlay {
-  /* A dark translucent div that covers the whole screen */
-  position:absolute;
-  z-index:9999;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background-color:#000000;
-  opacity: 0.8;
-}
-.ng-modal-dialog {
-  /* A centered div above the overlay with a box shadow. */
-  z-index:10000;
-  position: absolute;
-  width: 50%; /* Default */
-
-  /* Center the dialog */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -webkit-transform: translate(-50%, -50%);
-  -moz-transform: translate(-50%, -50%);
-
-  background-color: #fff;
-  box-shadow: 4px 4px 80px #000;
-}
-.ng-modal-dialog-content {
-  padding:10px;
-  text-align: left;
-}
-.ng-modal-close {
-  position: absolute;
-  top: 3px;
-  right: 5px;
-  padding: 5px;
-  cursor: pointer;
-  font-size: 120%;
-  display: inline-block;
-  font-weight: bold;
-  font-family: 'arial', 'sans-serif';
-}
-
 </style>
 
 
@@ -382,18 +303,9 @@ a:hover{
          <td class="text-center" >{{z.min_eligible_time}}</td>
          <td class="text-center" >{{z.warm_up_time}}</td>
          <td class="text-center" >{{z.session_type}}</td>
-        <td> <button class="btn btn-primary" ng-click="toggleModal(z)">Edit</button></td>
+        <td> <button class="btn btn-primary" ng-click="open(z)">Edit</button></td>
             
-             <!--MODAL WINDOW--> 
-            <modal-dialog show='modalShown' width='400px' height='60%'>
-       <div > 
-             <label>Name</label><input type="text" name="name" ng-model="name" class="form-control"><br/>  
-             <label>Email</label><input type="text" name="email" ng-model="email" class="form-control"><br/> 
-             <label>Age</label><input type="text" name="age" ng-model="age" class="form-control"><br/>  
-             <input type="hidden" >  
-             <input type="submit" name="btnUpdate" class="btn btn-success" ng-click="update_data()" value="Update">  
-        </div>
-    </modal-dialog>
+            
             
         </tr>
              
@@ -407,54 +319,57 @@ a:hover{
           </div>
   	  </div>
 </div>
+        
+        
+        <script type="text/ng-template" id="myModalContent.html">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Event Details</h3>
+        </div>
+       
+        
+         <form name = "addFriendForm">
+          <label style="float:left;margin-left:5em;" >Event Number:&nbsp;&nbsp;</label><input ng-model = "event.event_number" value="{{event.event_number}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Event Name:&nbsp;&nbsp;</label><input ng-model = "event.event_name" value="{{event.event_name}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Sex&nbsp;&nbsp;</label><input ng-model = "event.eligibile_sex" value="{{event.eligibile_sex}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Age&nbsp;&nbsp;</label><input ng-model = "event.eligible_age_min"  class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Event Date:&nbsp;&nbsp;</label><input ng-model = "event.event_date" value="{{event.event_date}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;" >Start Time:&nbsp;&nbsp;</label><input ng-model = "event.meet_start_time" value="{{event.meet_start_time}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Min Eligible Time:&nbsp;&nbsp;</label><input ng-model = "event.min_eligible_time" value="{{event.min_eligible_time}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Warm Up Time:&nbsp;&nbsp;</label><input ng-model = "event.warm_up_time" value="{{event.warm_up_time}}" class="form-control" type = "text" />
+          <label style="float:left;margin-left:5em;">Session:&nbsp;&nbsp;</label><input ng-model = "event.session_type" value="{{event.session_type}}" class="form-control" type = "text" />
+          
+        </form>
+        
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="ok()">OK</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+    </script>
+        
         </div>
     
     
 <script>
     
     
-    var app = angular.module("swimMeet", ['angularUtils.directives.dirPagination']);
-
+    var app = angular.module("swimMeet", ['ui.bootstrap','angularUtils.directives.dirPagination']);
     
-    /*app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, customer)
-{
-        $scope.customer = customer;
-    });
-    */
     
-    app.directive('modalDialog', function() {
-  return {
-    restrict: 'E',
-    scope: {
-      show: '='
-    },
-    replace: true, // Replace with the template below
-    transclude: true, // we want to insert custom content inside the directive
-    link: function(scope, element, attrs) {
-      scope.dialogStyle = {};
-      if (attrs.width)
-        scope.dialogStyle.width = attrs.width;
-      if (attrs.height)
-        scope.dialogStyle.height = attrs.height;
-      scope.hideModal = function() {
-        scope.show = false;
-      };
-    },
-    template: "<div class='ng-modal' ng-show='show'><div class='ng-modal-overlay' ng-click='hideModal()'></div><div class='ng-modal-dialog' ng-style='dialogStyle'><div class='ng-modal-close' ng-click='hideModal()'>X</div><div class='ng-modal-dialog-content' ng-transclude></div></div></div>"
-  };
-});
-    
-      app.controller("myData", function($scope, $http) {
+    app.controller("myData", function($modal, $scope, $http) {
         
+    $scope.open = function(obj) {
+    
+        var modalinstance = $modal.open({
+            templateUrl: 'myModalContent.html',
+            controller: 'ModalInstanceCtrl',
+            resolve: {
+                event: function(){ return obj},
+               
+      }
+    });
+  };    
           
-            $scope.modalShown = false;
-          
-          $scope.toggleModal = function(obj) {
-            $scope.modalShown = !$scope.modalShown;
-            console.log(obj.event_name);
-  };
-          
-          $http({
+        $http({
             method: 'post',
             url: 'eventList.php',
             params: {
@@ -478,9 +393,9 @@ a:hover{
               $scope.elgTime = obj.min_eligible_time;
               $scope.warmTime = obj.warm_up_time;
               $scope.session = obj.session_type;
-                var s=c;
-              //console.log(s);
-            $http.post(
+              var s=c;
+            
+              $http.post(
                       "temp.php", {
                           'name': $scope.name,
                           'sex': $scope.sex,
@@ -499,26 +414,29 @@ a:hover{
                     console.log("success"+data);
           });
           }
-          
-      /*     // MODAL WINDOW
-        $scope.open = function (_customer) {
-
-        var modalInstance = $modal.open({
-          controller: "ModalInstanceCtrl",
-          templateUrl: 'myModalContent',
-            resolve: {
-                customer: function()
-                {
-                    return _customer;
-                }
-            }
-             });
-
-    };*/
-         
+     
       });
-
     
-</script> 
+    angular.module("swimMeet").controller('ModalInstanceCtrl', function ($scope, $modalInstance, event) {
+       
+        
+        $scope.event = event;
+        $scope.selected = {
+            event: $scope.event[0]
+        };
+        
+        
+        $scope.ok = function () {
+            $modalInstance.close($scope.selected.item);
+            console.log(event.event_name);
+        };
+
+        $scope.cancel = function () {
+            $modalInstance.dismiss('cancel');
+           
+        };
+    });
+
+    </script> 
     </body>
 </html>
