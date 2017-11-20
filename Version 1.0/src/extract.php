@@ -1,21 +1,19 @@
 <?php
 include 'connectDB.php';
-
-//echo "<style>table,th, td{border : 1px solid;}</style>";
-//echo "<style>table{border-collapse: collapse}</style>";
-//echo "<table style='border: 1px solid'><th> Event Type </th><th> Event Number </th><th> Minimum Time </th><th> Event Name </th><th> Event Age </th> <th> Meet Date </th>";
 include 'PdfBox\PdfBox.php';
-//extractPdf('2017-0416-dwny-may-2017-lc-meet.pdf', '');
-extractPdf('comm.pdf', '');
 function extractPdf($pdfName, $deadline){
-	$GLOBALS['meet_deadline'] = $deadline;
+$splitDeadlineArr = explode("/",$deadline);
+$month = $splitDeadlineArr[0];
+$date = $splitDeadlineArr[1];
+$year = $splitDeadlineArr[2];
+$deadlineFormatted = $year."-".$month."-".$date;
+$GLOBALS['meet_deadline'] = $deadlineFormatted;
 	$months = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
-$pdf = 'PDFs\\'.$pdfName;
+$pdf = '..\\PDFs\\'.$pdfName;
 $converter = new PdfBox;
-$converter->setPathToPdfBox('Jars\pdfbox-app-2.0.7.jar');
+$converter->setPathToPdfBox('..\Jars\pdfbox-app-2.0.7.jar');
 $pageNumber = 2;
 $secondPage = trim($converter->textFromPdfFile($pdf, $pageNumber));	
-//echo $secondPage;
 $skipElements = array("Relays", "Time", "Mixed", "Permitting", "OPEN");
 $rows = explode("\n", $secondPage);
 $i = -1;
@@ -39,9 +37,8 @@ $step = 1;
 //Indicates of we have found warm up and meet times	
 $warmupAndMeetTimeInd = false;	
 foreach($rows as $row => $data)
-{
+{   //row has no word in it; skip it
 	$shouldProcessRow = true;
-	echo "row ".$row." and data is : ".$data."<br>";
  //Check if row contains dates of the meet
 if($step==1){	
   foreach ($months as $mon) {
@@ -54,16 +51,16 @@ if($step==1){
 		else{
 		    $meetName = $data; 	
 		}
-		echo "Meet Name: ".$meetName."<br>";
 		$meetDates = fetchMeetDates($meetName);
-		var_dump($meetDates);
 		$meet1Date =$meetDates[0];
 		$meet2Date = $meetDates[1];
 		$payable_to = "Southern California Swimming";
 	    $payment_instructions = "N/A";
 	    $max_per_kid_signup = 4;  
+		$per_event_charge = 4;
+		$min_eligible_age = 11;
 	    $signup_deadline = $GLOBALS['meet_deadline'];
-	    $sql = "insert into meet(meet_name, meet_date1, meet_date2, payable_to, payment_instructions, max_per_kid_signup, signup_deadline)values('".$meetName."', '".$meet1Date."','".$meet2Date."', '".$payable_to ."', '".$payment_instructions."', '".$max_per_kid_signup."', '".$signup_deadline."')";
+	    $sql = "insert into meet(meet_name, meet_date1, meet_date2, min_eligible_age, payable_to, per_event_charge, payment_instructions, max_per_kid_signup, signup_deadline)values('".$meetName."', '".$meet1Date."','".$meet2Date."',$min_eligible_age,'".$payable_to ."','".$per_event_charge."', '".$payment_instructions."', '".$max_per_kid_signup."', '".$signup_deadline."')";
 	  
 	$conn = connectToDB();
 	UpdateDB($conn, $sql);   
@@ -85,67 +82,52 @@ else if(strpos($data, "Warm Up Time")!==false){
 	$timeSplit = explode("Warm Up Time:", $warmUpMeetStarttimes[1]);	  
 	$meetStartTime1 = $timeSplit[0];
 	$warmUpTime2 = $timeSplit[1];  
-	$meetStartTime2 = $warmUpMeetStarttimes[2];  
-    echo "<b>Warm Up Time of Meet 1 : </b>". $warmUpTime1."<br>";
-    echo "<b>Meet Start Time of Meet 1 : </b>". $meetStartTime1."<br>";
-    echo "<b>Warm Up Time of Meet 2 : </b>". $warmUpTime2."<br>";
-    echo "<b>Meet Start Time of Meet 2 : </b>". $meetStartTime2."<br>";
-	
+	$meetStartTime2 = $warmUpMeetStarttimes[2];  	
 	$GLOBALS['warmUpTime1'] =  $warmUpTime1;
 	$GLOBALS['meetStartTime1'] =  $meetStartTime1;
 	$GLOBALS['warmUpTime2'] =  $warmUpTime2;
 	$GLOBALS['meetStartTime2'] =  $meetStartTime2; 
  }
 else if($step==2){ 	
-	if(strpos($data, "Girls")!==false && strpos($data, "Age")!==false && strpos($data, "Min")!==false){
+	if(stripos($data, "Girls")!==false && stripos($data, "Age")!==false && stripos($data, "Min")!==false){
 		$step++;
 	//marks the start of table
 	}
 }	
 else{
 	//check if this row contains warm up and meet times		
-	  echo "**************************"."<br";
-	  echo "row number ".$row." and data : ".$data."<br>";
-	  echo "current first ".$currentFirstEventNumber."<br>";
-		echo "current second ".$currentSecondEventNumber."<br>";
+	
 	if(!$detectedFirstTableEnd){
-		if($step==3){//for downey club pdf, we have to ignore one line that provides session information
-			if(strpos($data, "Session")==true){
-				$detectedFirstTableEnd = true;
-			}
-		}
-	else{
-		if(str_word_count($data)>2){
-		if(checkifEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber)==false){
-			$detectedFirstTableEnd = true;
-			 }
-		}
-	   }
+		  
+		  $dataTemp = skipElements($data);
+		  $arrTemp = explode(" ",$dataTemp);	
+		  if(hasAtleastOneLegitimateWord($arrTemp)){
+			  if(checkifEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber)==false){
+			     $detectedFirstTableEnd = true;
+		      }
+		  }
+	   
+	   
 	}
     else if($detectedSecondTableStart && !$detectedSecondTableEnd){
-		echo "current first ".$currentFirstEventNumber;
-		echo "current second ".$currentSecondEventNumber;
+	
 		if(str_word_count($data)>2){
 		 if(checkifEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber)==false){
 			$detectedSecondTableEnd = true;
-			echo "INSIDE DETCETED SECOND TABLE END";
+			
 	    	if($AdditionalInfo2 == "")
 		      $AdditionalInfo2 = $AdditionalInfo2.$data;
 			 else
 			   $AdditionalInfo2 = $AdditionalInfo2."\n". $data;
-		   echo "print Additional Info2";
-		   echo $AdditionalInfo2."<br>"; 
+		  
 	      }
 		}
 		 }
 	else if($detectedFirstTableEnd && !$detectedSecondTableStart){
-		if($step==3){
-			if(strpos($data, "Girls")!==false && strpos($data, "Age")!==false && strpos($data, "Min")!==false)
+			if(strpos($data, "Girls")!==false && strpos($data, "Age")!==false && strpos($data, "Min")!==false){
 				$markSecondTableStart = true;
-			    echo "marked second table start";
-		
 		}
-		 else if(strpos($data, $currentFirstEventNumber+1)==true && strpos($data, $currentSecondEventNumber+1)==true){
+		 else if(checkifBothEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber)==true){
 			     $detectedSecondTableStart = true;
 			     $sessionType = "Afternoon";
 		     }
@@ -154,49 +136,30 @@ else{
 				$AdditionalInfo1 =$AdditionalInfo1.$data;
 			 else
 				 $AdditionalInfo1 = $AdditionalInfo1. $data;
-			echo "print Additional Info1";
-		   echo $AdditionalInfo1."<br>";
 		}
 	}
     else if($detectedSecondTableEnd){
 		if(str_word_count($data)>2){
-		echo "INSIDE DETCETED SECOND TABLE END";
+		
 	    	if($AdditionalInfo2 == "")
 		      $AdditionalInfo2 = $AdditionalInfo2.$data;
 			 else
 			   $AdditionalInfo2 = $AdditionalInfo2."\n". $data;
-		   echo "print Additional Info2";
-		   echo $AdditionalInfo2."<br>";
+		  
 		}
-		else{
-			echo "SKIPPED <2WORDS";
+		
 		}
-		}
-echo "detectedFirstTableEnd ";
-echo $detectedFirstTableEnd?'true':'false';
-echo "<br>";	  
-echo "detectedSecondTableStart ";
-echo $detectedSecondTableStart?'true':'false';
-echo "<br>";
-echo "detectedSecondTableEnd ";
-echo $detectedSecondTableEnd?'true':'false';
-echo "<br>";	
-echo "detectedOPENFirst ".$detectedOPENFirst;
-echo "<br>";
-echo "detectedOPENSecondStart ".$detectedOPENSecondStart;	
-echo "<br>";	  
-echo "detectedOPENSecondEnd ".$detectedOPENSecondEnd;	  
-echo "<br>";	  
+
 if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTableEnd)){
 	$switchFirstEventToSecond = false;
 	$currentFirstEventNumTemp  = $currentFirstEventNumber;
 	//prepare the character array
 	$eventRow = $data;
-	var_dump($eventRow);
+	
 	$actualEventDetails = skipElements($eventRow);
-	echo "fffffffffffffff".sizeof($actualEventDetails);
-	var_dump($actualEventDetails);
+	
 	$eventInfoSplit = explode(" ", $actualEventDetails);
+
 	//Handling case where only partial event information is exracted by PDFBox
 	if(ageEligibilityDesc($eventInfoSplit[0])){
 		//Partial first Event Details-First Event Details are missing so ignore the frst word
@@ -204,35 +167,91 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 		//Partial Second Event Details -Right table details are also partially extracted
 		//we ignore processing this row all together-HeadCoach will have edit option on screen to populate the missing event information
 		$shouldProcessRow = false;	
+		
 	}
 	else{//Left table data is partially extracted and right table data is fully extracted
 			//just remove the first Event Detail and parse the second
 			array_shift($eventInfoSplit);
-		    echo "ddddddddddddddddddd ".$eventInfoSplit[0];
+		   
 			
         }
 	}
+	else{
+		//if we all have is time and age eligibility description - skip as row is not extracted properly
+		
+		if(!hasAtleastOneLegitimateWord($eventInfoSplit)){
+			$shouldProcessRow = false;
+			
+		}
+		else{   
+		     if(strpos($eventInfoSplit[0], ":")==true){
+				 if(ageEligibilityDesc($eventInfoSplit[1])){
+					 array_shift($eventInfoSplit);
+					 array_shift($eventInfoSplit);
+				 }
+			 }
+		}
+		}
 	if($shouldProcessRow){
-	//echo "eventInfoSize : ".sizeof($eventInfoSplit);
 	//Retrieve the event Name indexes of left table
 	//FirstEvent may be missing or has event number missing
-	
 	$firstEventNameIndexes = findFirstEventName($eventInfoSplit);
 	sort($firstEventNameIndexes);
+		
 	$firstEventName = "";
 	//First Event Name
 	for($i=0;$i<sizeof($firstEventNameIndexes);$i++){
-		$firstEventName = $firstEventName. $eventInfoSplit[$firstEventNameIndexes[$i]];
-	}
+		$firstEventName = $firstEventName." ". $eventInfoSplit[$firstEventNameIndexes[$i]];
+	}	
 	//var_dump($firstEventNameIndexes);
 	$secondEventNameIndexes = findSecondEventName($eventInfoSplit, $firstEventNameIndexes);
-	echo "size ".sizeof($secondEventNameIndexes);
-     //Find Age Eligibility
+	sort($secondEventNameIndexes);	
+	
+	//Remove OPEN if present before Event Name
+	$index1 = removeExtraTextBeforeEventName($eventInfoSplit, $firstEventNameIndexes);
+	
+	$index2 = removeExtraTextBeforeEventName($eventInfoSplit, $secondEventNameIndexes);
+	
+	
+	
+	if($index2==$firstEventNameIndexes[sizeof($firstEventNameIndexes)-1]+1){
+		$index2 = "None";
+	}	
+	if($index1!="None" || $index2!="None")	
+	  $eventInfoSplit = makeShift($eventInfoSplit, $index1, $index2);	
+	if($index1!="None"){
+		
+		for($i=0;$i<sizeof($firstEventNameIndexes);$i++){
+			$valueIndex = $firstEventNameIndexes[$i];
+			
+			$newValueIndex = $valueIndex-1;
+		
+			$firstEventNameIndexes[$i] = $newValueIndex;
+		}
+		for($i=0;$i<sizeof($secondEventNameIndexes);$i++){
+			$valueIndex = $secondEventNameIndexes[$i];
+			
+			$newValueIndex = $valueIndex-1;
+			
+			$secondEventNameIndexes[$i] = $newValueIndex;
+		}
+	}
+			
+	if($index2!="None"){
+		for($i=0;$i<sizeof($secondEventNameIndexes);$i++){
+			$valueIndex = $secondEventNameIndexes[$i];
+			
+			$newValueIndex = $valueIndex-1;
+			
+			$secondEventNameIndexes[$i] = $newValueIndex;
+		}
+	}	
+    //Find Age Eligibility
 	$firstEventAgeIndex = $firstEventNameIndexes[sizeof($firstEventNameIndexes)-1]+1;
 	$firstEventAge = $eventInfoSplit[$firstEventAgeIndex];
 	//First Event - Get Details for Girls
 	$prevIndex = $firstEventNameIndexes[0]-1;
-	//echo "aaaaaaaaaa ".$prevIndex;
+	
 	//Default Values
 	$firstEventGirlsEligibility = "N";
 	$firstEventBoysEligibility = "N";
@@ -251,7 +270,6 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 		if($firstEventNumberGirls!=$currentFirstEventNumber+1)
 			array_push($missingEventNumbers, 2);
 		$currentFirstEventNumber = $firstEventNumberGirls;
-		echo "<br> currentFirstEventNumberrrrrrrrrrrrrrrrrrrr ".$currentFirstEventNumber."<br>";
 		$firstEventGirlsEligibility = "Y";
 	}
 	}
@@ -285,6 +303,9 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 			  $currentSecondEventNumber = $firstEventNumberBoys;
 			  $switchFirstEventToSecond = true; 
 		  }
+		  else{
+			  $currentFirstEventNumber = $firstEventNumberBoys;
+		  }	
 	     if($switchFirstEventToSecond==true){
 			 $currentSecondEventNumber = $firstEventNumberBoys;
 		 } 
@@ -306,17 +327,16 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 	$secondEventNumberBoys = "N/A";	
 	$secondEventGirlsMin = "N/A";
 	$secondEventBoysMin = "N/A";	
-	sort($secondEventNameIndexes);
+	
 	//var_dump($secondEventNameIndexes);
 	$secondEventAgeIndex = $secondEventNameIndexes[sizeof($secondEventNameIndexes)-1]+1;	
-	$secondEventPrevIndex = $secondEventNameIndexes[0]-1;
-	echo "secondEventPrevIndex :".$secondEventPrevIndex;
-	echo "secondEventPrevIndexValue :".$eventInfoSplit[$secondEventPrevIndex];	
+	$secondEventPrevIndex = $secondEventNameIndexes[0]-1;	
 	$secondEventName = "";
-	//First Event Name
+	//Second Event Name
 	for($i=0;$i<sizeof($secondEventNameIndexes);$i++){
-		$secondEventName = $secondEventName. $eventInfoSplit[$secondEventNameIndexes[$i]];
+		$secondEventName = $secondEventName." ".$eventInfoSplit[$secondEventNameIndexes[$i]];
 	}
+		
 	$secondEventAge = $eventInfoSplit[$secondEventAgeIndex];
 	if(strpos($eventInfoSplit[$secondEventPrevIndex], ':')!== false)
 	{
@@ -326,10 +346,8 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 	else
 	{
 		$secondEventGirlsMin = "N/A";
-	}
-	echo "CurrentFirstEventNumber ".$currentFirstEventNumber;
-	echo "checking ".$eventInfoSplit[$secondEventPrevIndex];
-	if(foundNextEventNumber($eventInfoSplit[$secondEventPrevIndex], $currentFirstEventNumber))
+	}	
+	if(foundNextEventNumber($eventInfoSplit[$secondEventPrevIndex], $currentFirstEventNumber) || $eventInfoSplit[$secondEventPrevIndex] == $currentFirstEventNumber)
 	{
 		//Found Event Number of First Event for Boys
 		$firstEventNumberBoys = $eventInfoSplit[$secondEventPrevIndex];
@@ -394,9 +412,8 @@ if(!$detectedFirstTableEnd || ($detectedSecondTableStart && !$detectedSecondTabl
 	   }	
 	}		
 		
-     }
+   }
 if($switchFirstEventToSecond==true){
-	echo "Switching";
 $secondEventNumberGirls = $firstEventNumberGirls;
 $secondEventGirlsEligibility = $firstEventGirlsEligibility;
 $secondEventGirlsMin = $firstEventGirlsMin;
@@ -408,61 +425,108 @@ $secondEventNumberBoys = $firstEventNumberBoys;
 $firstEventGirlsEligibility = "N";
 $firstEventBoysEligibility ="N";
 $currentFirstEventNumber = $currentFirstEventNumTemp;
-echo "returned current First Event Number back to : ".$currentFirstEventNumber."<br>";	
-}	
-echo "SwitchFirstEventToSecond ".$switchFirstEventToSecond."<br>";		
-echo "FirstEventNumberGirls ".$firstEventNumberGirls."<br>";
-echo "firstEventGirlsEligibility ".$firstEventGirlsEligibility."<br>";
-echo "firstEventGirlsMin ".$firstEventGirlsMin."<br>";
-echo "firstEventName ".$firstEventName."<br>";
-echo "firstEventAge ".$firstEventAge."<br>";
-echo "firstEventBoysMin ".$firstEventBoysMin."<br>";
-echo "firstEventBoysEligibility ".$firstEventBoysEligibility."<br>";
-echo "FirstEventNumberBoys ".$firstEventNumberBoys."<br>";
+	
+}
 
-echo "SecondEventNumberGirls ".$secondEventNumberGirls."<br>";
-echo "SecondEventGirlsEligibility ".$secondEventGirlsEligibility."<br>";
-echo "SecondEventGirlsMin ".$secondEventGirlsMin."<br>";
-echo "SecondEventName ".$secondEventName."<br>";
-echo "SecondEventAge ".$secondEventAge."<br>";
-echo "SecondEventBoysMin ".$secondEventBoysMin."<br>";
-echo "SecondEventBoysEligibility ".$secondEventBoysEligibility."<br>";
-echo "SecondEventNumberBoys ".$secondEventNumberBoys."<br>";	
-echo "detectedFirstTableEnd ";
-echo $detectedFirstTableEnd?'true':'false';
-echo "<br>";	  
-echo "detectedSecondTableStart ";
-echo $detectedSecondTableStart?'true':'false';
-echo "<br>";
-echo "detectedSecondTableEnd ";
-echo $detectedSecondTableEnd?'true':'false';
-echo "<br>";	
-echo "detectedOPENFirst ".$detectedOPENFirst;
-echo "<br>";
-echo "detectedOPENSecondStart ".$detectedOPENSecondStart;	
-echo "<br>";	  
-echo "detectedOPENSecondEnd ".$detectedOPENSecondEnd;	  
-echo "<br>";	  
+printEvent($meet1Date, $firstEventNumberGirls, $firstEventGirlsEligibility, $firstEventGirlsMin, $firstEventName, $firstEventAge, $firstEventBoysMin, $firstEventBoysEligibility, $firstEventNumberBoys, $sessionType);	
+
+printEvent($meet2Date, $secondEventNumberGirls, $secondEventGirlsEligibility, $secondEventGirlsMin, $secondEventName, $secondEventAge, $secondEventBoysMin, $secondEventBoysEligibility, $secondEventNumberBoys, $sessionType);	
+	}
+}
+		
+ }
+if($markSecondTableStart){
+	$detectedSecondTableStart = true;	
+    $sessionType = "Afternoon";
+}
+}
+$conn = $GLOBALS['conn'];
+$meetId = $GLOBALS['meetId'];	
+$sql = "update meet set AdditionalInfo1='".$AdditionalInfo1."', AdditionalInfo2='".$AdditionalInfo2."' where meet_id=$meetId";	
+UpdateDB($conn, $sql);
+}
+
+function printEvent($meetDate, $girlsEventNumber, $girlsEligibility, $girlsMin, $eventName, $eventAge, $boysMin, $boysEligibility, $boysEventNumber, $sessionType){
+	
+	$meetId = $GLOBALS['meetId'];
+	$conn = $GLOBALS['conn'];
+	if(($girlsEligibility == $boysEligibility) && $boysEligibility == "Y" && ($girlsEventNumber==$boysEventNumber)){
+		$sql = "insert into event values($girlsEventNumber, $meetId, '".$eventName."', 'Mixed','".$eventAge."',  '".$meetDate."', '".$girlsMin."', '".$sessionType."','N/A')";
+		UpdateDB($conn, $sql);
+		
 	
 	}
-
-printEvent($firstEventNumberGirls, $firstEventGirlsEligibility, $firstEventGirlsMin, $firstEventName, $firstEventAge, $firstEventBoysMin, $firstEventBoysEligibility, $firstEventNumberBoys, $isMixedEvent, $sessionType);	
- }
-//
+	else{
+	 if($girlsEligibility == "Y")
+	{
+		$sql = "insert into event values($girlsEventNumber, $meetId, '".$eventName."', 'Girls','".$eventAge."', '".$meetDate."', '".$girlsMin."','".$sessionType."','N/A')";
+		UpdateDB($conn, $sql);
+		
+	}
+	if($boysEligibility == "Y")
+	{
+        $sql = "insert into event values($boysEventNumber, '".$meetId."', '".$eventName."', 'Boys','".$eventAge."', '".$meetDate."', '".$boysMin."', '".$sessionType."','N/A')";
+		UpdateDB($conn, $sql); 
+		
+	}
+	}
 }
-
-if($markSecondTableStart)
-	$detectedSecondTableStart = true;	
-    $sessionType = "Morning";
+function removeExtraTextBeforeEventName($dataArr, $eventNameIndexes){
+  $index1 = "None";	
+  if(sizeof($eventNameIndexes)>0){
+	$eventStartIndex = $eventNameIndexes[0];
+	if($eventStartIndex-1>=0){
+    if($dataArr[$eventStartIndex-1]=="OPEN" || $dataArr[$eventStartIndex-1]=="***")
+	   return $eventStartIndex-1;
+   }
+  }
+  return $index1;
 }
+function makeShift($dataArr, $index1, $index2){
+   $newEventArr = array();
+   if($index1=="None"){
+	 for($i=0;$i<$index2;$i++){
+	   array_push($newEventArr, $dataArr[$i]);
+     }
+	 for($i=$index2+1;$i<sizeof($dataArr);$i++){
+	   array_push($newEventArr, $dataArr[$i]);
+     }  
+   }
+   else{
+	    for($i=0;$i<$index1;$i++){
+	      array_push($newEventArr, $dataArr[$i]);
+        }
+	    if($index2=="None"){
+		 for($i=$index1+1;$i<sizeof($dataArr);$i++){
+	      array_push($newEventArr, $dataArr[$i]);
+		}
+		}
+		else{
+			for($i=$index1+1;$i<$index2;$i++){
+	           array_push($newEventArr, $dataArr[$i]);
+			}
+		    for($i=$index2+1;$i<sizeof($dataArr);$i++){
+	          array_push($newEventArr, $dataArr[$i]);		
+             }	
+            }
+   }
+	return $newEventArr;
+ 
 }
+function hasAtleastOneLegitimateWord($eventInfoSplit){
+	$pattern = '/[a-zA-Z]/';
+	for($i=0;$i<sizeof($eventInfoSplit);$i++){
+	   $subject = $eventInfoSplit[$i];
+      if (preg_match($pattern, $subject) && !ageEligibilityDesc($subject)){
+		return true;
+	  }
+	}
+	return false;	
+    }
 function checkifEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber){
-	echo "inside fxn checkifevententry ".$data;
 	for($i=1;$i<=5;$i++){
 		$subject = $currentFirstEventNumber+$i;
-		echo "check ".$subject;
 		if(strpos($data, (string)$subject)==true){
-			echo "yessssssssssssssssssssss";
 			return true;
 		}
 		}
@@ -474,6 +538,28 @@ function checkifEventEntry($data, $currentFirstEventNumber, $currentSecondEventN
 		}
 	}
 	return false;
+}
+function checkifBothEventEntry($data, $currentFirstEventNumber, $currentSecondEventNumber){
+	$counter = 0;
+	for($i=1;$i<=5;$i++){
+		$subject = $currentFirstEventNumber+$i;
+		if(strpos($data, (string)$subject)==true){
+			$counter++;
+			break;
+		}
+	}
+	
+	for($i=1;$i<=5;$i++){
+		$subject = $currentSecondEventNumber+$i;
+		if(strpos($data, (string)$subject)==true){
+			$counter++;
+			break;
+		}
+	}
+	if($counter==2)
+		return true;
+	else
+		return false;
 }
 function foundNextEventNumber($first, $second){
 	for($i=1;$i<=5;$i++){
@@ -493,9 +579,7 @@ $found = 0;
 	$subject = $eventInfoSplit[$i];
 	//echo "i is ". $i. "value is: ".$subject."<br>";
     if (preg_match($pattern, $subject) && !ageEligibilityDesc($subject)){
-      echo "matched at index ".$i. " value is: ". $eventInfoSplit[$i]; 
 	 if(!in_array($i, $firstEventIndexes)){	
-      echo "second event matched at index".$i. " value is: ". $eventInfoSplit[$i];
 	  array_push($indexes, $i);
 	  array_push($indexes, $i-1);
 	  $found = 1;	 
@@ -503,14 +587,12 @@ $found = 0;
 	 }
   }
 }
-    echo "found ".$found;
 	if($found == 0){
 		$empty_array = array();
 		return $empty_array;
 	}
 	//echo("i is ". $i);
 	$j = ++$i; 
-	echo ("j is ". $j);
   while(!ageEligibilityDesc($eventInfoSplit[$j]) && !checkSkipElements($eventInfoSplit[$j]))   {
 		array_push($indexes, $j);
 		$j++;	
@@ -526,15 +608,13 @@ $i=0;
 	$subject = $eventInfoSplit[$i];
 	//echo "i is ". $i. "value is: ".$subject."<br>";
     if (preg_match($pattern, $subject) && !ageEligibilityDesc($subject)){
-     // echo "matched at index ".$i. " value is: ". $eventInfoSplit[$i]; 
    	  array_push($indexes, $i);
 	  array_push($indexes, $i-1);	
 	  break;	
   }
 }
-	echo("i is ". $i);
+	
 	$j = ++$i; 
-	echo ("j is ". $j);
   while(!ageEligibilityDesc($eventInfoSplit[$j]) && !checkSkipElements($eventInfoSplit[$j]))   {
 		array_push($indexes, $j);
 		$j++;	
@@ -542,8 +622,9 @@ $i=0;
 	return $indexes;
 }
 function ageEligibilityDesc($eventString){
-    if(strpos($eventString, '-')== true || $eventString=="OPEN"|| strpos($eventString, '&')== true)
+    if(strpos($eventString, '-')== true || $eventString=="OPEN"|| strpos($eventString, '&')== true){
 		return true;
+	}
 }	
 function skipElements($a){
 	$skipElements = array("RELAYS", "TIME", "MIXED", "PERMITTING", "DECK", "ENTERED");
@@ -554,99 +635,63 @@ function skipElements($a){
 	}
 	//remove double whitespaces between words
 	$stripped = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $rowData);
-	echo "line ". trim($stripped);
 	return trim($stripped);
 }
 function checkSkipElements($a){
-	$a = strtoupper($a);
-	$a = trim($a);
+	$b = strtoupper($a);
+	$b = trim($a);
 	$skipElements = array("RELAYS", "TIME", "MIXED", "PERMITTING", "OPEN", "DECK", "ENTERED");
-	if(in_array($a, $skipElements))
+	if(in_array($b, $skipElements) && $a!="Open"){
 		return true;
+	}
 	
 }
 function fetchMeetDates($meetName){
-	$stripped = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $meetName);
+	$stripped = preg_replace(array('/\s{2,}/', '/[ \t\n]/'), ' ', $meetName);
 	$arr = explode(' ',trim($stripped)); 
 	$meetMonth = $arr[0];
-	if(strpos($arr[1],"-")==true)
+	$meetMonthNumber = date('m',strtotime($meetMonth));
+	if(strpos($arr[1],"-")==true) 
 	   $meetDates = explode('-', $arr[1]);
 	else
 		$meetDates = explode('&', $arr[1]);
-	echo "meetMonth ".$meetMonth;
 	$meet1Date = trim($meetDates[0]);
-	echo "meet1Date ".$meet1Date;
-	if(strpos($meetDates[1],",")==true){
-	$temp = explode(',', $meetDates[1]);
-	$meet2Date = trim($temp[0]);
+	$meetYear = $arr[sizeof($arr)-1];
+	$meetDates = "";
+	for($i=1;$i<sizeof($arr)-1;$i++){
+		$meetDates = $meetDates.$arr[$i];
 	}
-	else if(strpos($meetDates[1],"&")==true){
-	$temp = explode(',', $meetDates[1]);
-	$meet2Date = trim($temp[0]);
+	//remove spaces
+	str_replace(" ","",$meetDates);
+	if(strpos($meetDates, "-")==true){
+		$meetDatesArr = explode("-", $meetDates);
+		$meet1Date = $meetDatesArr[0];
+		if(strpos($meetDatesArr[1],",")==true){
+	      $temp = explode(',', $meetDatesArr[1]);
+	      $meet2Date = $temp[0];
+	    }
+		else{
+			$meet2Date = $meetDatesArr[1];
+		}
 	}
-	else{
-		$meet2Date = trim($meetDates[1]);
+	if(strpos($meetDates, "&")==true){
+		$meetDatesArr = explode("&", $meetDates);
+		$meet1Date = $meetDatesArr[0];
+		if(strpos($meetDatesArr[1],",")==true){
+	      $temp = explode(',', $meetDatesArr[1]);
+	      $meet2Date = $temp[0];
+	    }
+		else{
+			$meet2Date = $meetDatesArr[1];
+		}
 	}
-	echo "meet2Date ".$meet2Date;
-	$meetYear = $arr[2];
-	echo "meetYEar ".$meetYear;
-	$meet1FullDate = $meetMonth." ".$meet1Date.", ".$meetYear;
-	$meet2FullDate = $meetMonth." ".$meet2Date.", ".$meetYear;
-	$meetDatesArr = array();
-	array_push($meetDatesArr, $meet1FullDate);
-	array_push($meetDatesArr, $meet2FullDate);
-	return $meetDatesArr;
-}
-function printEvent($girlsEventNumber, $girlsEligibility, $girlsMin, $eventName, $eventAge, $boysMin, $boysEligibility, $boysEventNumber, $isMixedEvent)
-{	
-	$meetId = $GLOBALS['meetId'];
-	$warmUpTime = $GLOBALS['warmUpTime1'];
-	$meetStartTime = $GLOBALS['meetStartTime1'];
-	$conn = $GLOBALS['conn'];
-	if($isMixedEvent)
-	{
-		$sql = "insert into event values($girlsEventNumber, $meetId, '".$eventName."', 'Mixed','".$eventAge."',  '".$meetDate."', '".$girlsMin."', '".$warmUpTime."', '".$meetStartTime."','Morning','N/A')";
-		UpdateDB($conn, $sql);
-		echo $sql;
-	    echo "<tr>";
-		echo "<td> Girls and Boys</td>";
-		echo "<td>".$girlsEventNumber."</td>";
-		echo "<td>".$girlsMin."</td>";
-		echo "<td>".$eventName."</td>";
-		echo "<td>".$eventAge."</td>";
-		echo "<td>".$meetDate."</td>";
-		echo "</br>";
-	}
-	else{
-	 if($girlsEligibility == "Y")
-	{
-		$sql = "insert into event values($girlsEventNumber, $meetId, '".$eventName."', 'Girls','".$eventAge."', '".$meetDate."', '".$girlsMin."', '".$warmUpTime."', '".$meetStartTime."','Morning','N/A')";
-		UpdateDB($conn, $sql);
-		echo $sql;
-		echo "<tr>";
-		echo "<td> Girls </td>";
-		echo "<td>".$girlsEventNumber."</td>";
-		echo "<td>".$girlsMin."</td>";
-		echo "<td>".$eventName."</td>";
-		echo "<td>".$eventAge."</td>";
-		echo "<td>".$meetDate."</td>";
-		echo "</br>";
-	}
-	if($boysEligibility == "Y")
-	{
-        $sql = "insert into event values($boysEventNumber, '".$meetId."', '".$eventName."', 'Boys','".$eventAge."', '".$meetDate."', '".$boysMin."', '".$warmUpTime."', '".$meetStartTime."','Morning','N/A')";
-		UpdateDB($conn, $sql); 
-		echo $sql;
-		echo "<tr>";
-		echo "<td> Boys </td>";
-		echo "<td>".$boysEventNumber."</td>";
-		echo "<td>".$boysMin."</td>";
-		echo "<td>".$eventName."</td>";
-		echo "<td>".$eventAge."</td>";
-		echo "<td>".$meetDate."</td>";
-		echo "</br>";
-	}
-	}
+
+	$meet1FullDate = $meetYear."-".$meetMonthNumber."-".$meet1Date;
+	$meet2FullDate = $meetYear."-".$meetMonthNumber."-".$meet2Date;
+	$meetDatesArr2 = array();
+	array_push($meetDatesArr2, $meet1FullDate);
+	array_push($meetDatesArr2, $meet2FullDate);
+	return $meetDatesArr2;
 }
 
 
