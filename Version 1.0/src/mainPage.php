@@ -1,51 +1,5 @@
 <!DOCTYPE html>
-<?php 
-include 'connectDB.php'; 
-session_start();
-//$R = "JJJJJ";
-if(isset($_SESSION['login_user']))
-	  header("location: mainPage.php");
 
-	// echo "<script>console.log( 'Debug Objects: " . $_SESSION['login_user'] . "' );</script>";
-// else
-// 	echo "<script>console.log( 'Debug Objects: " . $R . "' );</script>";
-
-if(isset($_POST['submit'])){
-	$loginId = $_POST['loginId'];	
-	$loginPswd = $_POST['loginPswd'];
-	$userRole = $_POST['user'];
-	//$_SESSION['loggedIn']=$loginId; 
-	$conn = connectToDB();
-	$query = "select count(*) from user where login_id = '".$loginId."' and login_pswd = '".$loginPswd."' and user_role = '".$userRole."'";
-	$row = fetchFromDB($conn, $query);
-	if($row[0]==1 && $userRole == "Coach")
-	{	
-		$_SESSION['login_user'] = $loginId;
-	  header("location:HeadCoach.php");
-	}
-	// if($row[0]==1 && $userRole == "Parent")
-	// {
-	// 	$_SESSION['login_user'] = $loginId;
-	// 	header("location:Parent_landing.html");
-	// }
-	if($row[0]==1 && $userRole == "Parent")
-	{
-		$_SESSION['login_user'] = $loginId;
-		$query = "select DOB,login_id, sex from user where login_id = '".$loginId."' and user_role = '".$userRole."'";
-		$row = fetchFromDB($conn, $query);
-		$_SESSION['dob'] = $row[0];
-		$_SESSION['loginId'] = $row[1];
-		$_SESSION['sex'] = $row[2];
-		header("location:ParentLandingPage.php");
-		
-	}
-	if($row[0] != 1)
-	{
-		 $_SESSION['errMsg'] = "Invalid username or password. <br>Please try again.";
-	}
-}
-
-?>
 <html lang="en">
 <head>
 <title> Swim Meet Signup </title>
@@ -70,11 +24,11 @@ if(isset($_POST['submit'])){
 			  <ul class="tabs">
 			  	  <li id="associationName" style="margin-left:40px;margin-top:30px;letter-spacing:3px;opacity:0.8;">ARCADIA RIPTIDES<br>
 				  <li style="margin-left:11%;margin-top:6.5%;letter-spacing:3px;opacity:0.8;position:absolute;color:#f6734a;">SWIMMING CLUB</li>
-			  	  <li><a href="#" style="font-size: 115%;float:right;margin-right:10%;margin-top:3%;">Contact</a></li>
+			  	  <!-- <li><a href="#" style="font-size: 115%;float:right;margin-right:10%;margin-top:3%;">Contact</a></li>
 				  <li><a href="#" style="font-size: 115%;float:right;margin-right:20px;margin-top:3%;">About</a></li>
-				  <li><a href="#" class="tab_selected" style="font-size: 115%;float:right;margin-right:20px;margin-top:3%;">Home</a></li>
+				  <li><a href="#" class="tab_selected" style="font-size: 115%;float:right;margin-right:20px;margin-top:3%;">Home</a></li> -->
 			  </ul>
-    		<div id="coach" >
+    		<!-- <div id="coach" >
 				<div style="background-color:#f6734a;width:100%;height:8vh;">
 					
 				</div>
@@ -104,7 +58,7 @@ if(isset($_POST['submit'])){
 		      	<br>
 		      	<button type="submit" name="submit" class="btn btn-primary" id="coachlogin" style="width:35%;height:7.5vh;opacity:1.5;">Login</button>
 				</form>	
-    		</div>
+    		</div> -->
 		<div>
 			<span style="margin-top:39.5%;margin-left:-32%;opacity:0.8;position:absolute;color:#f6734a;">© Arcadia Riptides Swim Club</span>
 		</div>	
