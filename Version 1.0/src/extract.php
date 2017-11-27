@@ -7,11 +7,123 @@ $month = $splitDeadlineArr[0];
 $date = $splitDeadlineArr[1];
 $year = $splitDeadlineArr[2];
 $deadlineFormatted = $year."-".$month."-".$date;
-$GLOBALS['meet_deadline'] = $deadlineFormatted;
-	$months = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+$GLOBALS['meet_deadline'] = $deadlineFormatted;	
+$months = array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 $pdf = '..\\PDFs\\'.$pdfName;
 $converter = new PdfBox;
 $converter->setPathToPdfBox('..\Jars\pdfbox-app-2.0.7.jar');
+$pageNumber = 1;
+$step=1;	
+$firstPage = trim($converter->textFromPdfFile($pdf, $pageNumber));
+//Dates of Meet,per event charge, individual swimmig charge and payee information will be extracted from first page of PDF
+$rows = explode("\n", $firstPage);
+$rules_data ="";
+$rules_found = false;	
+foreach($rows as $row => $data){ 
+if($step==1){	
+  foreach ($months as $mon) {
+    if(strpos($data, $mon)!==false)
+	{   
+	    $meetMonthIndex = strpos($data, $mon);
+		$meetData = substr($data, $meetMonthIndex);
+		$meetDates = fetchMeetDates($data, $meetMonthIndex);
+	    $meetName = $meetDates[0];
+		$meet1Date = $meetDates[1];
+		$meet2Date = $meetDates[2];
+	    $step = $step + 1;
+	    $GLOBALS['meetName'] = $meetName;
+		$GLOBALS['meet1Date'] = $meet1Date;
+		$GLOBALS['meet2Date'] = $meet2Date;
+	}
+  }
+}
+else if($step == 2){
+	//get rules of swimming events
+	if($rules_found==true){
+		if(strpos($data, "RECORDING DEVICES & MEDIA NOTICE")==false)
+	  		$rules_data = $rules_data+" "+$data;
+		else{
+			$rules_found = false;
+			//parse rules here
+			$step = $step + 1;
+		}
+	}
+	else{
+		if(strpos($data,"RULES:")==true){
+			$rules_data =  $data;
+			$rules_found = true;
+	    }
+	}
+	$step = $step+1;
+}
+else if($step==3){
+	if(strpos($data, "FEES:")==true){
+		$step = $step+1;
+		$meet_charge_temp = explode("FEES:", $data);
+		$charges = $meet_charge_temp[1];
+		$event_charge_index = strpos($charges, "$");
+		$swimmer_charge_index = strpos($charges, '$', $event_charge_index+1); 
+		//$swimmer_charge_index = $event_charge_index[1];
+	    $event_charge_temp = trim(substr($charges,$event_charge_index+1));
+		$event_charge_temp2 = explode(" ", $event_charge_temp);
+		$event_charge = $event_charge_temp2[0];
+		$swimmer_charge_temp = trim(substr($charges,$swimmer_charge_index+1));
+		$swimmer_charge_temp2 = explode(" ", $swimmer_charge_temp);
+		$swimmer_charge = $swimmer_charge_temp2[0];
+		$GLOBALS['meetName'] = $meetName;
+	}
+	else if(strpos($data, "PROCEDURE:")==true){
+		$step = $step+1;
+		$meet_charge_temp = explode("PROCEDURE:", $data);
+		$charges = $meet_charge_temp[1];
+		$event_charge_index = strpos($charges, "$");
+		$swimmer_charge_index = strpos($charges, '$', $event_charge_index+1); 
+		//$swimmer_charge_index = $event_charge_index[1];
+	    $event_charge_temp = trim(substr($charges,$event_charge_index+1));
+		$event_charge_temp2 = explode(" ", $event_charge_temp);
+		$event_charge = $event_charge_temp2[0];
+		$swimmer_charge_temp = trim(substr($charges,$swimmer_charge_index+1));
+		$swimmer_charge_temp2 = explode(" ", $swimmer_charge_temp);
+		$swimmer_charge = $swimmer_charge_temp2[0];
+	    $GLOBALS['per_event_charge'] = $event_charge;
+		$GLOBALS['individual_charge'] = $swimmer_charge;
+	}
+}
+else if($step==4){
+	if(stripos($data, "Checks Payable to")==true){
+		$step = $step+1;
+		$payable_to_data = $keywords = preg_split("/Checks Payable to/i", $data);
+		$payable_to_temp = $payable_to_data[1];
+		$questions_index = stripos($payable_to_temp,"questions");
+		$payable_to = $payable_to_temp;
+		if($questions_index==true){
+			$payable_to = substr($payable_to_temp,0,$questions_index);
+		}
+		str_replace(":","",$payable_to);
+		$GLOBALS['payable_to'] = $payable_to;
+	}
+}	
+else{
+		$payable_to = $GLOBALS['payable_to'];
+	    $payment_instructions = "N/A";
+	    $max_per_kid_signup = 4;  
+		$per_event_charge = $GLOBALS['per_event_charge'];
+		$min_eligible_age = 11;
+	    $signup_deadline = $GLOBALS['meet_deadline'];
+	    $sql = "insert into meet(meet_name, meet_date1, meet_date2, min_eligible_age, payable_to, per_event_charge, payment_instructions, max_per_kid_signup, signup_deadline)values('".$meetName."', '".$meet1Date."','".$meet2Date."',$min_eligible_age,'".$payable_to ."','".$per_event_charge."', '".$payment_instructions."', '".$max_per_kid_signup."', '".$signup_deadline."')";
+	  
+	$conn = connectToDB();
+	UpdateDB($conn, $sql);   
+	$meetIdSql = "select max(meet_id) from meet";   
+	$row = fetchFromDB($conn, $meetIdSql); 
+	$meetId = $row[0]; 
+	$GLOBALS['meetId'] = $meetId; 
+	$GLOBALS['conn'] = $conn;  
+	break;
+}	
+	}
+	 //Get First and Second Meet Dates 
+
 $pageNumber = 2;
 $secondPage = trim($converter->textFromPdfFile($pdf, $pageNumber));	
 $skipElements = array("Relays", "Time", "Mixed", "Permitting", "OPEN");
@@ -54,23 +166,7 @@ if($step==1){
 		$meetDates = fetchMeetDates($meetName);
 		$meet1Date =$meetDates[0];
 		$meet2Date = $meetDates[1];
-		$payable_to = "Southern California Swimming";
-	    $payment_instructions = "N/A";
-	    $max_per_kid_signup = 4;  
-		$per_event_charge = 4;
-		$min_eligible_age = 11;
-	    $signup_deadline = $GLOBALS['meet_deadline'];
-	    $sql = "insert into meet(meet_name, meet_date1, meet_date2, min_eligible_age, payable_to, per_event_charge, payment_instructions, max_per_kid_signup, signup_deadline)values('".$meetName."', '".$meet1Date."','".$meet2Date."',$min_eligible_age,'".$payable_to ."','".$per_event_charge."', '".$payment_instructions."', '".$max_per_kid_signup."', '".$signup_deadline."')";
-	  
-	$conn = connectToDB();
-	UpdateDB($conn, $sql);   
-	$meetIdSql = "select max(meet_id) from meet";   
-	$row = fetchFromDB($conn, $meetIdSql); 
-	$meetId = $row[0]; 
-	$GLOBALS['meetId'] = $meetId; 
-	$GLOBALS['conn'] = $conn;  
-		$step = $step+1;
-		break;
+		
 	}
 	 //Get First and Second Meet Dates 
   } 
